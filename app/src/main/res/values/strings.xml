@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Shufflefy</string>
+    <string name="spotify_client_id">7f5a0d9cb256413da12352f2d05816c2</string>
+    <string name="spotify_redirect_url">erikkamp://shufflefyredirectcallback</string>
+    <string name="spotify_user_access">user-read-private</string>
+    <string name="spotify_api_type">streaming</string>
+
+</resources>
