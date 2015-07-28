@@ -7,7 +7,12 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.ekamp.shufflefy.R;
+import com.ekamp.shufflefy.ShufflefyApplication;
 import com.ekamp.shufflefy.adapters.CoverFlowViewPagerAdapter;
+import com.ekamp.shufflefy.api.events.PlayListDataDownloadedEvent;
+import com.ekamp.shufflefy.api.events.TrackListDownloadedEvent;
+import com.ekamp.shufflefy.api.model.PlayList;
+import com.ekamp.shufflefy.controller.SpotifyController;
 import com.spotify.sdk.android.authentication.AuthenticationClient;
 import com.spotify.sdk.android.authentication.AuthenticationRequest;
 import com.spotify.sdk.android.authentication.AuthenticationResponse;
@@ -18,7 +23,7 @@ import com.spotify.sdk.android.player.PlayerNotificationCallback;
 import com.spotify.sdk.android.player.PlayerState;
 import com.spotify.sdk.android.player.PlayerStateCallback;
 import com.spotify.sdk.android.player.Spotify;
-
+import com.squareup.otto.Subscribe;
 
 /**
  * View Controller Activity that controls what the user sees and hears in the main context of the application.
@@ -43,6 +48,18 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
         authenticateSpotifyUser();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        ShufflefyApplication.get().getApplicationEventBus().register(this);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        ShufflefyApplication.get().getApplicationEventBus().unregister(this);
+    }
+
     /**
      * Binds our CoverFlow ViewPager to its respected ViewPagerAdapter.
      */
@@ -64,13 +81,12 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
         AuthenticationClient.openLoginActivity(this, REQUEST_ID, authenticationRequest);
     }
 
-
     /**
      * Determines if the Spotify Player instance is ready to use.
      *
      * @return true if ready false otherwise.
      */
-    private boolean isSpotifyPlayerReady(){
+    private boolean isSpotifyPlayerReady() {
         return spotifyPlayer != null && spotifyPlayer.isInitialized() && spotifyPlayer.isLoggedIn();
     }
 
@@ -80,15 +96,17 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
 
         //Setup for the Spotify player instance
         if (requestCode == REQUEST_ID) {
-            AuthenticationResponse loginResponce = AuthenticationClient.getResponse(resultCode, data);
+            final AuthenticationResponse loginResponce = AuthenticationClient.getResponse(resultCode, data);
             if (loginResponce.getType() == AuthenticationResponse.Type.TOKEN) {
-                Config spotifyPlayerConfig = new Config(this, loginResponce.getAccessToken(), getString(R.string.spotify_client_id));
+                final Config spotifyPlayerConfig = new Config(this, loginResponce.getAccessToken(), getString(R.string.spotify_client_id));
                 spotifyPlayer = Spotify.getPlayer(spotifyPlayerConfig, this, new Player.InitializationObserver() {
                     @Override
                     public void onInitialized(Player player) {
                         spotifyPlayer.addConnectionStateCallback(ViewControllerActivity.this);
                         spotifyPlayer.addPlayerNotificationCallback(ViewControllerActivity.this);
-//                        spotifyPlayer.play("spotify:track:2TpxZ7JUBn3uw46aR7qd6V");
+
+                        SpotifyController.getInstance().storeSpotifyAccessToken(loginResponce.getAccessToken());
+                        SpotifyController.getInstance().getUserPlayLists("ekamp");
                     }
 
                     @Override
@@ -142,26 +160,35 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
     }
 
     @Override
-    public void playPauseSong(String songID) {
+    public void playPauseSong(final String trackID) {
         if (isSpotifyPlayerReady()) {
             spotifyPlayer.getPlayerState(new PlayerStateCallback() {
                 @Override
                 public void onPlayerState(PlayerState playerState) {
-                    if (playerState.playing) {
-                        spotifyPlayer.pause();
-                    } else {
-//                        spotifyPlayer.play();
+                    try {
+                        if (playerState.playing) {
+                            spotifyPlayer.pause();
+                        } else {
+                            spotifyPlayer.play(trackID);
+                        }
+                    } catch (Exception e) {
+                        //TODO change to DialogFragment to notify the user of this error
+                        Log.e(getClass().getName(), "Could not play this track at this time");
                     }
                 }
             });
         }
     }
 
-    @Override
-    public String getCoverArtResource() {
-        if(isSpotifyPlayerReady()){
+    @Subscribe
+    public void onUserPlaylistDataDownloaded(PlayListDataDownloadedEvent playListDataDownloadedEvent) {
+        //Fetch all of the songs pertaining to the first playlist and start the first song
+        PlayList testPlayList = playListDataDownloadedEvent.getUserPlayListData().get(0);
+        SpotifyController.getInstance().getPlayListTracks(testPlayList.getOwnerUserId(), testPlayList.getTrackListID());
+    }
 
-        }
-        return "";
+    @Subscribe
+    public void onPlaylistTrackListDownloaded(TrackListDownloadedEvent trackListDownloadedEvent) {
+        Log.i(getClass().getName(), "Track list information for the first track off the UI " + trackListDownloadedEvent.getPlaylistTrackList().toString());
     }
 }

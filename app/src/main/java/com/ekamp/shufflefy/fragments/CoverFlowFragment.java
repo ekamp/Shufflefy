@@ -18,7 +18,7 @@ import com.squareup.picasso.Picasso;
  * Fragment used to display cover art for the currently playing song.
  *
  * @author Erik Kamp
- * @since v1.0
+ * @since 7/25/15
  */
 public class CoverFlowFragment extends Fragment {
 
