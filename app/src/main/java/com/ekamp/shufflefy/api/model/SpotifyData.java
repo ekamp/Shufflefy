@@ -13,6 +13,7 @@ public class SpotifyData {
     public static SpotifyData spotifyDataInstance;
 
     private List<PlayList> userPlayLists;
+    private List<Track> userSavedTracks;
     private String apiAccessToken;
 
     public static SpotifyData getInstance() {
@@ -26,12 +27,20 @@ public class SpotifyData {
         return apiAccessToken;
     }
 
+    public List<Track> getUserSavedTracks() {
+        return userSavedTracks;
+    }
+
     public List<PlayList> getUserPlayLists() {
         return userPlayLists;
     }
 
     public void setUserPlayLists(List<PlayList> userPlayLists) {
         this.userPlayLists = userPlayLists;
+    }
+
+    public void setUserSavedTracks(List<Track> userSavedTracks) {
+        this.userSavedTracks = userSavedTracks;
     }
 
     public void setApiAccessToken(String apiAccessToken) {
@@ -42,6 +51,8 @@ public class SpotifyData {
     public String toString() {
         return "SpotifyData{" +
                 "userPlayLists=" + userPlayLists +
+                ", userSavedTracks=" + userSavedTracks +
+                ", apiAccessToken='" + apiAccessToken + '\'' +
                 '}';
     }
 }

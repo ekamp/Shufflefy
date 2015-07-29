@@ -9,9 +9,10 @@ import android.util.Log;
 import com.ekamp.shufflefy.R;
 import com.ekamp.shufflefy.ShufflefyApplication;
 import com.ekamp.shufflefy.adapters.CoverFlowViewPagerAdapter;
+import com.ekamp.shufflefy.api.events.CurrentUserTrackListDownloadedEvent;
 import com.ekamp.shufflefy.api.events.PlayListDataDownloadedEvent;
 import com.ekamp.shufflefy.api.events.TrackListDownloadedEvent;
-import com.ekamp.shufflefy.api.model.PlayList;
+import com.ekamp.shufflefy.api.model.Track;
 import com.ekamp.shufflefy.controller.SpotifyController;
 import com.spotify.sdk.android.authentication.AuthenticationClient;
 import com.spotify.sdk.android.authentication.AuthenticationRequest;
@@ -35,9 +36,10 @@ import com.squareup.otto.Subscribe;
 public class ViewControllerActivity extends FragmentActivity implements ActivityControllerCallback, PlayerNotificationCallback, ConnectionStateCallback {
 
     private ViewPager coverFlowViewPager;
-    private CoverFlowViewPagerAdapter coverFlowViewPagerAdapter;
     private Player spotifyPlayer;
     private final static int REQUEST_ID = 1337;
+    private int previousCoverPosition = 0;
+    private ViewPager.OnPageChangeListener onPageChangeListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,9 +66,31 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
      * Binds our CoverFlow ViewPager to its respected ViewPagerAdapter.
      */
     private void setupViewPager() {
-        //TODO include the Spotify SDK list of songs / cover art flow here
         coverFlowViewPager.setAdapter(new CoverFlowViewPagerAdapter(getSupportFragmentManager()));
         coverFlowViewPager.setOffscreenPageLimit(3);
+
+        coverFlowViewPager.addOnPageChangeListener(
+                onPageChangeListener =
+                        new ViewPager.OnPageChangeListener() {
+                            @Override
+                            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+                            }
+
+                            @Override
+                            public void onPageSelected(int position) {
+                                //Once the user has scrolled to the next song, play the next song
+                                if (previousCoverPosition > position) {
+                                    spotifyPlayer.skipToPrevious();
+                                } else {
+                                    spotifyPlayer.skipToNext();
+                                }
+                                previousCoverPosition = position;
+                            }
+
+                            @Override
+                            public void onPageScrollStateChanged(int state) {
+                            }
+                        });
     }
 
     /**
@@ -76,7 +100,7 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
         AuthenticationRequest.Builder authenticationBuilder = new AuthenticationRequest.Builder(getString(R.string.spotify_client_id),
                 AuthenticationResponse.Type.TOKEN,
                 getString(R.string.spotify_redirect_url));
-        authenticationBuilder.setScopes(new String[]{getString(R.string.spotify_user_access), getString(R.string.spotify_api_type)});
+        authenticationBuilder.setScopes(new String[]{getString(R.string.spotify_user_library_read_scope), getString(R.string.spotify_user_access), getString(R.string.spotify_api_type)});
         AuthenticationRequest authenticationRequest = authenticationBuilder.build();
         AuthenticationClient.openLoginActivity(this, REQUEST_ID, authenticationRequest);
     }
@@ -106,7 +130,7 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
                         spotifyPlayer.addPlayerNotificationCallback(ViewControllerActivity.this);
 
                         SpotifyController.getInstance().storeSpotifyAccessToken(loginResponce.getAccessToken());
-                        SpotifyController.getInstance().getUserPlayLists("ekamp");
+                        SpotifyController.getInstance().getCurrentUsersTrackList();
                     }
 
                     @Override
@@ -151,7 +175,15 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
 
     @Override
     public void onPlaybackEvent(EventType eventType, PlayerState playerState) {
-
+//        if (eventType.equals(EventType.SKIP_NEXT)) {
+//            coverFlowViewPager.removeOnPageChangeListener(onPageChangeListener);
+//            coverFlowViewPager.setCurrentItem(coverFlowViewPager.getCurrentItem() + 1, true);
+//            coverFlowViewPager.addOnPageChangeListener(onPageChangeListener);
+//        } else if (eventType.equals(EventType.SKIP_PREV)) {
+//            coverFlowViewPager.removeOnPageChangeListener(onPageChangeListener);
+//            coverFlowViewPager.setCurrentItem(coverFlowViewPager.getCurrentItem() - 1, true);
+//            coverFlowViewPager.addOnPageChangeListener(onPageChangeListener);
+//        }
     }
 
     @Override
@@ -159,36 +191,46 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
 
     }
 
+    private void playSongOnFragmentChange(final String trackID) {
+
+
+    }
+
     @Override
-    public void playPauseSong(final String trackID) {
-        if (isSpotifyPlayerReady()) {
-            spotifyPlayer.getPlayerState(new PlayerStateCallback() {
-                @Override
-                public void onPlayerState(PlayerState playerState) {
-                    try {
-                        if (playerState.playing) {
-                            spotifyPlayer.pause();
-                        } else {
-                            spotifyPlayer.play(trackID);
-                        }
-                    } catch (Exception e) {
-                        //TODO change to DialogFragment to notify the user of this error
-                        Log.e(getClass().getName(), "Could not play this track at this time");
-                    }
+    public void playPauseSong() {
+        spotifyPlayer.getPlayerState(new PlayerStateCallback() {
+            @Override
+            public void onPlayerState(PlayerState playerState) {
+                if (playerState.playing) {
+                    spotifyPlayer.pause();
+                } else {
+                    spotifyPlayer.resume();
                 }
-            });
+            }
+        });
+    }
+
+    private void queuePlayerWithUserSongs() {
+        if (isSpotifyPlayerReady()) {
+            for (Track track : SpotifyController.getInstance().getUsersSavedTracks()) {
+                spotifyPlayer.queue(track.getTrackPlayableName());
+            }
         }
     }
 
     @Subscribe
     public void onUserPlaylistDataDownloaded(PlayListDataDownloadedEvent playListDataDownloadedEvent) {
-        //Fetch all of the songs pertaining to the first playlist and start the first song
-        PlayList testPlayList = playListDataDownloadedEvent.getUserPlayListData().get(0);
-        SpotifyController.getInstance().getPlayListTracks(testPlayList.getOwnerUserId(), testPlayList.getTrackListID());
     }
 
     @Subscribe
     public void onPlaylistTrackListDownloaded(TrackListDownloadedEvent trackListDownloadedEvent) {
-        Log.i(getClass().getName(), "Track list information for the first track off the UI " + trackListDownloadedEvent.getPlaylistTrackList().toString());
+    }
+
+    @Subscribe
+    public void onCurrentTrackListDownloaded(CurrentUserTrackListDownloadedEvent currentUserTrackListDownloadedEvent) {
+        //Once we have downloaded we just want to store and play the users first song from their library.
+        SpotifyController.getInstance().storeUserSavedTracks(currentUserTrackListDownloadedEvent.getTrackList());
+        queuePlayerWithUserSongs();
+        setupViewPager();
     }
 }

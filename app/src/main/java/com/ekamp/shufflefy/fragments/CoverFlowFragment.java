@@ -12,6 +12,7 @@ import android.widget.ImageView;
 
 import com.ekamp.shufflefy.R;
 import com.ekamp.shufflefy.activities.ActivityControllerCallback;
+import com.ekamp.shufflefy.api.model.Track;
 import com.squareup.picasso.Picasso;
 
 /**
@@ -23,10 +24,9 @@ import com.squareup.picasso.Picasso;
 public class CoverFlowFragment extends Fragment {
 
     public static String TAG = "CoverFlowFragment";
+    private Track currentTrack;
     private ImageView coverFlowImageView;
     private ActivityControllerCallback activityControllerCallback;
-    private String trackID;
-
 
     @Override
     public void onAttach(Activity activity) {
@@ -38,9 +38,9 @@ public class CoverFlowFragment extends Fragment {
         }
     }
 
-    public static CoverFlowFragment newInstance(String trackID) {
+    public static CoverFlowFragment newInstance(Track currentTrack) {
         CoverFlowFragment coverFlowFragment = new CoverFlowFragment();
-        coverFlowFragment.setTrackID(trackID);
+        coverFlowFragment.setCurrentTrack(currentTrack);
         return coverFlowFragment;
     }
 
@@ -48,32 +48,32 @@ public class CoverFlowFragment extends Fragment {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         coverFlowImageView = (ImageView) view.findViewById(R.id.cover_flow_image_view);
-//        populateCoverFlowImage();
+        populateCoverFlowImage();
+        detectTouchForPlayPause(view);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.cover_flow_fragment, container, true);
+        return inflater.inflate(R.layout.cover_flow_fragment, container, false);
     }
 
     /**
-     * Sets the track ID for this fragment instance.
+     * Sets the track for the fragment
      *
-     * @param trackID Spotify Track ID
+     * @param currentTrack track to be displayed in this fragment
      */
-    public void setTrackID(String trackID) {
-        this.trackID = trackID;
+    public void setCurrentTrack(Track currentTrack) {
+        this.currentTrack = currentTrack;
     }
 
     /**
      * Using Picasso loads the cover art for the specified song into this fragment's ImageView
-     *
-     * @param imagePathFromSpotify imagePath or resource collected from the Spotify API
      */
-    private void populateCoverFlowImage(String imagePathFromSpotify) {
+    private void populateCoverFlowImage() {
         if (coverFlowImageView != null) {
             //TODO add placeholder color
-            Picasso.with(getActivity()).load(imagePathFromSpotify).centerCrop().into(coverFlowImageView);
+            Picasso.with(getActivity()).load(currentTrack.getTrackImageLocation()).error(R.color.cover_art_placeholder_color)
+                    .placeholder(R.color.cover_art_placeholder_color).fit().into(coverFlowImageView);
         }
     }
 
@@ -87,7 +87,7 @@ public class CoverFlowFragment extends Fragment {
             touchArea.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    activityControllerCallback.playPauseSong(trackID);
+                    activityControllerCallback.playPauseSong();
                 }
             });
         }

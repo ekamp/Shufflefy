@@ -1,6 +1,7 @@
 package com.ekamp.shufflefy.controller;
 
 import com.ekamp.shufflefy.api.model.PlayList;
+import com.ekamp.shufflefy.api.model.Track;
 
 import java.util.List;
 
@@ -35,6 +36,12 @@ public interface SpotifyControllerInterface {
 
 
     /**
+     * Retrives all songs this user has saved.
+     */
+    public void getCurrentUsersTrackList();
+
+
+    /**
      * Stores our playlist data within the persistent data model.
      *
      * @param userPlayListData list of the current user's saved playlists
@@ -58,4 +65,18 @@ public interface SpotifyControllerInterface {
      * @return access token downloaded once the user approved the application for use
      */
     public String getSpotifyAccessToken();
+
+    /**
+     * Saves the list of tracks currently in the user's song library.
+     *
+     * @param userTrackList downloaded user track list
+     */
+    public void storeUserSavedTracks(List<Track> userTrackList);
+
+    /**
+     * Retrives the list of tracks currently in the user's song library.
+     *
+     * @return the list of tracks currently in the user's song library.
+     */
+    public List<Track> getUsersSavedTracks();
 }

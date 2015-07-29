@@ -4,6 +4,7 @@ package com.ekamp.shufflefy.controller;
 import android.util.Log;
 
 import com.ekamp.shufflefy.ShufflefyApplication;
+import com.ekamp.shufflefy.api.events.CurrentUserTrackListDownloadedEvent;
 import com.ekamp.shufflefy.api.events.PlayListDataDownloadedEvent;
 import com.ekamp.shufflefy.api.events.TrackListDownloadedEvent;
 import com.ekamp.shufflefy.api.model.PlayList;
@@ -11,6 +12,7 @@ import com.ekamp.shufflefy.api.model.SpotifyData;
 import com.ekamp.shufflefy.api.model.Track;
 import com.ekamp.shufflefy.api.parsers.TrackListDeSerializer;
 import com.ekamp.shufflefy.api.parsers.UserPlayListDeSerializer;
+import com.ekamp.shufflefy.api.requests.CurrentUsersTracksService;
 import com.ekamp.shufflefy.api.requests.TrackListService;
 import com.ekamp.shufflefy.api.requests.UserPlayListService;
 import com.google.gson.FieldNamingPolicy;
@@ -123,6 +125,27 @@ public class SpotifyController implements SpotifyControllerInterface {
     }
 
     @Override
+    public void getCurrentUsersTrackList() {
+        Gson gson = new GsonBuilder()
+                .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+                .registerTypeAdapter(List.class, new TrackListDeSerializer())
+                .create();
+
+        CurrentUsersTracksService currentUsersTracksService = getRestAdapter(SpotifyController.getInstance().getSpotifyAccessToken(), gson).create(CurrentUsersTracksService.class);
+        currentUsersTracksService.getCurrentUsersSavedTracks(new Callback<List<Track>>() {
+            @Override
+            public void success(List<Track> tracks, Response response) {
+                ShufflefyApplication.get().getApplicationEventBus().post(new CurrentUserTrackListDownloadedEvent(tracks));
+            }
+
+            @Override
+            public void failure(RetrofitError error) {
+                Log.e(getClass().getName(), "Error " + error.toString());
+            }
+        });
+    }
+
+    @Override
     public void storePlayListData(List<PlayList> userPlayListData) {
         SpotifyData.getInstance().setUserPlayLists(userPlayListData);
     }
@@ -140,5 +163,15 @@ public class SpotifyController implements SpotifyControllerInterface {
     @Override
     public String getSpotifyAccessToken() {
         return SpotifyData.getInstance().getApiAccessToken();
+    }
+
+    @Override
+    public void storeUserSavedTracks(List<Track> userTrackList) {
+        SpotifyData.getInstance().setUserSavedTracks(userTrackList);
+    }
+
+    @Override
+    public List<Track> getUsersSavedTracks() {
+        return SpotifyData.getInstance().getUserSavedTracks();
     }
 }

@@ -9,6 +9,7 @@ package com.ekamp.shufflefy.api.model;
 public class Track {
 
     private String trackID, trackImageLocation, trackName;
+    private static String spotifyTrackPrefix = "spotify:track:";
 
     public Track(String trackID, String trackImageLocation, String trackName) {
         this.trackID = trackID;
@@ -37,6 +38,10 @@ public class Track {
 
     public void setTrackImageLocation(String trackImageLocation) {
         this.trackImageLocation = trackImageLocation;
+    }
+
+    public String getTrackPlayableName(){
+        return new StringBuilder(spotifyTrackPrefix).append(trackID).toString();
     }
 
     public void setTrackName(String trackName) {
