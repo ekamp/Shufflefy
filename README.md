@@ -13,3 +13,7 @@ The main structure of this application revolves around the Model View Controller
 - Square's Otto for an application-wide event bus.
 - Square's Picasso for smooth image loading.
 - Google's Support Percent Library for View Scaling.
+
+##Known Issues
+- ViewPager does not scroll to next Fragment once a track has completed playing.
+- SpotifyPlayer instance does not start playing a track when .skipToPrevious() is called on the queue.
