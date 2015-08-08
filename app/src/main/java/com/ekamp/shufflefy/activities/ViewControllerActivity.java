@@ -92,6 +92,7 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
                                 //Once the user has scrolled to the next song, play the next song
                                 if (previousCoverPosition > position) {
                                     spotifyPlayer.skipToPrevious();
+                                    spotifyPlayer.resume();
                                 } else {
                                     spotifyPlayer.skipToNext();
                                 }
