@@ -13,6 +13,8 @@ The main structure of this application revolves around the Model View Controller
 - Square's Otto for an application-wide event bus.
 - Square's Picasso for smooth image loading.
 - Google's Support Percent Library for View Scaling.
+- Spotify's Authentication library 1.0 beta 10 (Used for authenticating a user)
+- Spotify's Player library 1.0 beta 10 (Used to manage a user's track queue and track play state)
 
 ##Known Issues
 - ViewPager does not scroll to next Fragment once a track has completed playing.
