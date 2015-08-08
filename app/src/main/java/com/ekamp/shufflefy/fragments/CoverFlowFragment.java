@@ -48,13 +48,15 @@ public class CoverFlowFragment extends Fragment {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         coverFlowImageView = (ImageView) view.findViewById(R.id.cover_flow_image_view);
+
         populateCoverFlowImage();
+        populateTrackInformationTextViews();
         detectTouchForPlayPause(view);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.cover_flow_fragment, container, false);
+        return inflater.inflate(R.layout.fragment_cover_flow, container, false);
     }
 
     /**
@@ -75,6 +77,18 @@ public class CoverFlowFragment extends Fragment {
             Picasso.with(getActivity()).load(currentTrack.getTrackImageLocation()).error(R.color.cover_art_placeholder_color)
                     .placeholder(R.color.cover_art_placeholder_color).fit().into(coverFlowImageView);
         }
+    }
+
+    /**
+     * Given the TextView was bound properly, will populate the track information TextViews.
+     */
+    private void populateTrackInformationTextViews() {
+//        if(artistNameTextView != null)
+//            artistNameTextView.setText(currentTrack.getTrackName());
+//        if (songNameTextView != null)
+//            songNameTextView.setText(currentTrack.getTrackName());
+//        if(albumNameTextView != null)
+//            artistNameTextView.setText(currentTrack.getTrackName());
     }
 
     /**

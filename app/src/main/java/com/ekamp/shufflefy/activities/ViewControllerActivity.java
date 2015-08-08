@@ -5,6 +5,8 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.TypedValue;
+import android.widget.TextView;
 
 import com.ekamp.shufflefy.R;
 import com.ekamp.shufflefy.ShufflefyApplication;
@@ -40,6 +42,7 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
     private final static int REQUEST_ID = 1337;
     private int previousCoverPosition = 0;
     private ViewPager.OnPageChangeListener onPageChangeListener;
+    private TextView trackNameTextView, trackAlbumTextView, trackArtistTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +50,10 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
         setContentView(R.layout.activity_main);
 
         coverFlowViewPager = (ViewPager) findViewById(R.id.cover_flow_view_pager);
+        trackNameTextView = (TextView) findViewById(R.id.current_track_name);
+        trackArtistTextView = (TextView) findViewById(R.id.current_track_artist);
+        trackAlbumTextView = (TextView) findViewById(R.id.current_track_album);
+
         authenticateSpotifyUser();
     }
 
@@ -68,6 +75,10 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
     private void setupViewPager() {
         coverFlowViewPager.setAdapter(new CoverFlowViewPagerAdapter(getSupportFragmentManager()));
         coverFlowViewPager.setOffscreenPageLimit(3);
+        coverFlowViewPager.setClipToPadding(false);
+        //In order to make the page margin 10 dip/dp we need to use a typed value dimension.
+        //This conversion gives us a Float in which we cast to an integer in order to be compliant to the method.
+        coverFlowViewPager.setPageMargin((int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics()));
 
         coverFlowViewPager.addOnPageChangeListener(
                 onPageChangeListener =
@@ -84,6 +95,8 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
                                 } else {
                                     spotifyPlayer.skipToNext();
                                 }
+
+                                updateTrackInformationTextView(position);
                                 previousCoverPosition = position;
                             }
 
@@ -91,6 +104,16 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
                             public void onPageScrollStateChanged(int state) {
                             }
                         });
+    }
+
+    private void updateTrackInformationTextView(int currentTrackPosition) {
+        if (trackAlbumTextView == null || trackArtistTextView == null || trackNameTextView == null)
+            return;
+        Track currentTrackPointer = SpotifyController.getInstance().getUsersSavedTracks().get(currentTrackPosition);
+        trackArtistTextView.setText(currentTrackPointer.getTrackArtist());
+        trackNameTextView.setText(currentTrackPointer.getTrackName());
+        trackAlbumTextView.setText(currentTrackPointer.getTrackAlbum());
+
     }
 
     /**
@@ -175,24 +198,11 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
 
     @Override
     public void onPlaybackEvent(EventType eventType, PlayerState playerState) {
-//        if (eventType.equals(EventType.SKIP_NEXT)) {
-//            coverFlowViewPager.removeOnPageChangeListener(onPageChangeListener);
-//            coverFlowViewPager.setCurrentItem(coverFlowViewPager.getCurrentItem() + 1, true);
-//            coverFlowViewPager.addOnPageChangeListener(onPageChangeListener);
-//        } else if (eventType.equals(EventType.SKIP_PREV)) {
-//            coverFlowViewPager.removeOnPageChangeListener(onPageChangeListener);
-//            coverFlowViewPager.setCurrentItem(coverFlowViewPager.getCurrentItem() - 1, true);
-//            coverFlowViewPager.addOnPageChangeListener(onPageChangeListener);
-//        }
+        //TODO listen in for track end callback and scroll ViewPager by one.
     }
 
     @Override
     public void onPlaybackError(ErrorType errorType, String s) {
-
-    }
-
-    private void playSongOnFragmentChange(final String trackID) {
-
 
     }
 
@@ -232,5 +242,6 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
         SpotifyController.getInstance().storeUserSavedTracks(currentUserTrackListDownloadedEvent.getTrackList());
         queuePlayerWithUserSongs();
         setupViewPager();
+        updateTrackInformationTextView(0);
     }
 }
