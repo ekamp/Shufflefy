@@ -2,5 +2,6 @@
 <resources>
 
     <color name="cover_art_placeholder_color">#999999</color>
+    <color name="activity_view_background">#ECEFF1</color>
 
 </resources>

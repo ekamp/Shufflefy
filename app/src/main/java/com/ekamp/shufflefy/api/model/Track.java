@@ -1,7 +1,7 @@
 package com.ekamp.shufflefy.api.model;
 
 /**
- * Holds data for a specified Spotify track/song
+ * Holds data for a specified Spotify track/song.
  *
  * @author Erik Kamp
  * @since 7/25/15.

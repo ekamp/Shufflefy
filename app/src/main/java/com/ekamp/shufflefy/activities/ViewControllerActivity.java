@@ -106,6 +106,11 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
                         });
     }
 
+    /**
+     * Updates the Activity content to reflect the currently playing track
+     *
+     * @param currentTrackPosition the currently playing tracks location in our persistent data.
+     */
     private void updateTrackInformationTextView(int currentTrackPosition) {
         if (trackAlbumTextView == null || trackArtistTextView == null || trackNameTextView == null)
             return;
@@ -117,7 +122,7 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
     }
 
     /**
-     * Starts the Spotify authentication process.
+     * Starts the Spotify authentication process utilizing the v1.0 Spotify authentication library
      */
     public void authenticateSpotifyUser() {
         AuthenticationRequest.Builder authenticationBuilder = new AuthenticationRequest.Builder(getString(R.string.spotify_client_id),
@@ -135,6 +140,18 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
      */
     private boolean isSpotifyPlayerReady() {
         return spotifyPlayer != null && spotifyPlayer.isInitialized() && spotifyPlayer.isLoggedIn();
+    }
+
+
+    /**
+     * Populates the SpotifyPlayer instance with a few of the current user's saved tracks.
+     */
+    private void queuePlayerWithUserSongs() {
+        if (isSpotifyPlayerReady()) {
+            for (Track track : SpotifyController.getInstance().getUsersSavedTracks()) {
+                spotifyPlayer.queue(track.getTrackPlayableName());
+            }
+        }
     }
 
     @Override
@@ -218,14 +235,6 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
                 }
             }
         });
-    }
-
-    private void queuePlayerWithUserSongs() {
-        if (isSpotifyPlayerReady()) {
-            for (Track track : SpotifyController.getInstance().getUsersSavedTracks()) {
-                spotifyPlayer.queue(track.getTrackPlayableName());
-            }
-        }
     }
 
     @Subscribe

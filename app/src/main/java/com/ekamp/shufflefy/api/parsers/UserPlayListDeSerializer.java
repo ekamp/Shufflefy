@@ -1,7 +1,5 @@
 package com.ekamp.shufflefy.api.parsers;
 
-import android.util.Log;
-
 import com.ekamp.shufflefy.api.model.PlayList;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
@@ -37,6 +35,12 @@ public class UserPlayListDeSerializer implements JsonDeserializer<List<PlayList>
         return usersPlaylists;
     }
 
+    /**
+     * Parses Json playlist data into a PlayList POJO.
+     *
+     * @param jsonElement root JsonElement for a user's followed PlayList.
+     * @return POJO PlayList.
+     */
     private PlayList parseUserPlayList(JsonElement jsonElement) {
         PlayList playList = null;
         if (jsonElement != null) {
@@ -48,7 +52,13 @@ public class UserPlayListDeSerializer implements JsonDeserializer<List<PlayList>
         return playList;
     }
 
+    /**
+     * Grabs the owner of the PlayList that a user is following. If a user has created their own playlist it will simply populate with their username.
+     *
+     * @param playlistAccessInformation url grabbed from the returned JSON data.
+     * @return username of the user that created the followed playlist.
+     */
     private String extractPlayListOwnerName(String playlistAccessInformation) {
-        return playlistAccessInformation.substring(playlistAccessInformation.indexOf("user:")+5, playlistAccessInformation.indexOf(":playlist"));
+        return playlistAccessInformation.substring(playlistAccessInformation.indexOf("user:") + 5, playlistAccessInformation.indexOf(":playlist"));
     }
 }

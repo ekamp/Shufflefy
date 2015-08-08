@@ -1,6 +1,8 @@
 package com.ekamp.shufflefy.api.model;
 
 /**
+ * Holds data referencing a playlist of tracks that a user has followed or created.
+ *
  * @author Erik Kamp
  * @since 7/25/15.
  */

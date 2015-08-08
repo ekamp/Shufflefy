@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/activity_view_background"
     tools:context=".MainActivity">
 
     <android.support.v4.view.ViewPager
@@ -30,6 +31,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/material_text_gutter"
+            android:singleLine="true"
             android:textSize="@dimen/abc_text_size_large_material" />
 
         <TextView
@@ -46,6 +48,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/material_text_gutter"
+            android:singleLine="true"
             android:textSize="@dimen/abc_text_size_large_material" />
 
     </LinearLayout>

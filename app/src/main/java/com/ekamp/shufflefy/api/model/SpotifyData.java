@@ -3,7 +3,9 @@ package com.ekamp.shufflefy.api.model;
 import java.util.List;
 
 /**
- * Persistent data model in order to keep track of the previously downloaded track and playlist information.
+ * Session data model in order to keep track of the previously downloaded track and playlist information.
+ * At this point in time the application is relying on the Spotify Authentication library to hold onto the user
+ * credentials between application launches. Otherwise we are simply storing the access key per session.
  *
  * @author Erik Kamp
  * @since 7/27/15.

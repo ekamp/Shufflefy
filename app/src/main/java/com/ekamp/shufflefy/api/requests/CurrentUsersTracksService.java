@@ -8,6 +8,8 @@ import retrofit.Callback;
 import retrofit.http.GET;
 
 /**
+ * Service to get the current user's saved track Json information.
+ *
  * @author erikkamp
  * @since 7/25/15.
  */

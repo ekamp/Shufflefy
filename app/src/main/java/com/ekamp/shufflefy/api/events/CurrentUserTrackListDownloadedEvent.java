@@ -5,6 +5,8 @@ import com.ekamp.shufflefy.api.model.Track;
 import java.util.List;
 
 /**
+ * Event bus callback referenced when the currently logged in user's track list is successfully downloaded.
+ *
  * @author Erik Kamp
  * @since 7/25/15.
  */
