@@ -23,6 +23,12 @@ public class ShufflefyApplication extends Application {
         return shufflefyApplication;
     }
 
+    @Override
+    public void onCreate() {
+        super.onCreate();
+
+    }
+
     public Bus getApplicationEventBus() {
         return applicationEventBus;
     }

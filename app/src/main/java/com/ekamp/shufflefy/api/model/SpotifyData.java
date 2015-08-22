@@ -18,6 +18,12 @@ public class SpotifyData {
     private List<Track> userSavedTracks;
     private String apiAccessToken;
 
+    /**
+     * Retrieves the current instance of the SpotifyData object, if such an instance does not exist
+     * one is created.
+     *
+     * @return current SpotifyData instance.
+     */
     public static SpotifyData getInstance() {
         if (spotifyDataInstance == null) {
             spotifyDataInstance = new SpotifyData();

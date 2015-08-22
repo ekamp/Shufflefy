@@ -2,4 +2,7 @@
     <!-- Default screen margins, per the Android Design guidelines. -->
     <dimen name="material_gutter_margin">16dp</dimen>
     <dimen name="material_text_gutter">8dp</dimen>
+
+    <!-- View Pager Dimensions -->
+    <dimen name="cover_art_view_pager_padding">40dp</dimen>
 </resources>

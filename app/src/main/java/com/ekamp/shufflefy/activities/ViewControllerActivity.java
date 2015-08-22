@@ -1,6 +1,8 @@
 package com.ekamp.shufflefy.activities;
 
 import android.content.Intent;
+import android.support.design.widget.Snackbar;
+import android.support.percent.PercentRelativeLayout;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
@@ -12,6 +14,7 @@ import com.ekamp.shufflefy.R;
 import com.ekamp.shufflefy.ShufflefyApplication;
 import com.ekamp.shufflefy.adapters.CoverFlowViewPagerAdapter;
 import com.ekamp.shufflefy.api.events.CurrentUserTrackListDownloadedEvent;
+import com.ekamp.shufflefy.api.events.MediaChangedEvent;
 import com.ekamp.shufflefy.api.model.Track;
 import com.ekamp.shufflefy.controller.SpotifyController;
 import com.spotify.sdk.android.authentication.AuthenticationClient;
@@ -20,11 +23,14 @@ import com.spotify.sdk.android.authentication.AuthenticationResponse;
 import com.spotify.sdk.android.player.Config;
 import com.spotify.sdk.android.player.ConnectionStateCallback;
 import com.spotify.sdk.android.player.Player;
-import com.spotify.sdk.android.player.PlayerNotificationCallback;
 import com.spotify.sdk.android.player.PlayerState;
 import com.spotify.sdk.android.player.PlayerStateCallback;
 import com.spotify.sdk.android.player.Spotify;
 import com.squareup.otto.Subscribe;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnPageChange;
 
 /**
  * View Controller Activity that controls what the user sees and hears in the main context of the application.
@@ -33,24 +39,33 @@ import com.squareup.otto.Subscribe;
  * @author Erik Kamp
  * @since 7/25/2015
  */
-public class ViewControllerActivity extends FragmentActivity implements ActivityControllerCallback, PlayerNotificationCallback, ConnectionStateCallback {
+public class ViewControllerActivity extends FragmentActivity implements ActivityControllerCallback, ConnectionStateCallback {
 
-    private ViewPager coverFlowViewPager;
+    @Bind(R.id.cover_flow_view_pager)
+    ViewPager coverFlowViewPager;
+
+    @Bind(R.id.parent_viewgroup)
+    PercentRelativeLayout rootLayout;
+
+    @Bind(R.id.current_track_name)
+    TextView trackNameTextView;
+
+    @Bind(R.id.current_track_artist)
+    TextView trackArtistTextView;
+
+    @Bind(R.id.current_track_album)
+    TextView trackAlbumTextView;
+
     private Player spotifyPlayer;
     private final static int REQUEST_ID = 1337;
     private int previousCoverPosition = 0;
-    private ViewPager.OnPageChangeListener onPageChangeListener;
-    private TextView trackNameTextView, trackAlbumTextView, trackArtistTextView;
+    private boolean disableListener = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        coverFlowViewPager = (ViewPager) findViewById(R.id.cover_flow_view_pager);
-        trackNameTextView = (TextView) findViewById(R.id.current_track_name);
-        trackArtistTextView = (TextView) findViewById(R.id.current_track_artist);
-        trackAlbumTextView = (TextView) findViewById(R.id.current_track_album);
+        ButterKnife.bind(this);
 
         authenticateSpotifyUser();
     }
@@ -74,34 +89,28 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
         coverFlowViewPager.setAdapter(new CoverFlowViewPagerAdapter(getSupportFragmentManager()));
         coverFlowViewPager.setOffscreenPageLimit(3);
         coverFlowViewPager.setClipToPadding(false);
-        //In order to make the page margin 10 dip/dp we need to use a typed value dimension.
-        //This conversion gives us a Float in which we cast to an integer in order to be compliant to the method.
         coverFlowViewPager.setPageMargin((int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics()));
+    }
 
-        coverFlowViewPager.addOnPageChangeListener(
-                onPageChangeListener =
-                        new ViewPager.OnPageChangeListener() {
-                            @Override
-                            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-                            }
-
-                            @Override
-                            public void onPageSelected(int position) {
-                                //Once the user has scrolled to the next song, play the next song
-                                if (previousCoverPosition > position) {
-                                    spotifyPlayer.skipToPrevious();
-                                } else {
-                                    spotifyPlayer.skipToNext();
-                                }
-
-                                updateTrackInformationTextView(position);
-                                previousCoverPosition = position;
-                            }
-
-                            @Override
-                            public void onPageScrollStateChanged(int state) {
-                            }
-                        });
+    /**
+     * Binds a  OnPageChangeListener to the album cover art ViewPager in order to notify the Player instance
+     * of a track change.
+     *
+     * @param newTrackPosition new page position within our cover art ViewPager.
+     */
+    @OnPageChange(R.id.cover_flow_view_pager)
+    public void onCoverArtChangedListener(int newTrackPosition) {
+        if (disableListener) {
+            disableListener = false;
+            return;
+        }
+        if (newTrackPosition > previousCoverPosition) {
+            spotifyPlayer.skipToNext();
+        } else {
+            spotifyPlayer.skipToPrevious();
+        }
+        updateTrackInformationTextView(newTrackPosition);
+        previousCoverPosition = newTrackPosition;
     }
 
     /**
@@ -116,11 +125,12 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
         trackArtistTextView.setText(currentTrackPointer.getTrackArtist());
         trackNameTextView.setText(currentTrackPointer.getTrackName());
         trackAlbumTextView.setText(currentTrackPointer.getTrackAlbum());
-
     }
 
     /**
-     * Starts the Spotify authentication process utilizing the v1.0 Spotify authentication library
+     * Starts the Spotify authentication process utilizing the v1.0 Spotify authentication library.
+     * Under to hood creates a new Activity which is tasked with logging the user in and retrieving an
+     * access token from the Oauth login process.
      */
     private void authenticateSpotifyUser() {
         AuthenticationRequest.Builder authenticationBuilder = new AuthenticationRequest.Builder(getString(R.string.spotify_client_id),
@@ -140,7 +150,6 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
         return spotifyPlayer != null && spotifyPlayer.isInitialized() && spotifyPlayer.isLoggedIn();
     }
 
-
     /**
      * Populates the SpotifyPlayer instance with a few of the current user's saved tracks.
      */
@@ -155,20 +164,18 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
-        //Setup for the Spotify player instance
         if (requestCode == REQUEST_ID) {
+            //Collect the LoginActivity intent response through the use of the Spotify AuthenticationClient.
             final AuthenticationResponse loginResponce = AuthenticationClient.getResponse(resultCode, data);
+            //Check to make sure this is a login authentication response
             if (loginResponce.getType() == AuthenticationResponse.Type.TOKEN) {
+                //Grab the configuration for our player from the response
                 final Config spotifyPlayerConfig = new Config(this, loginResponce.getAccessToken(), getString(R.string.spotify_client_id));
+                //Create a new Spotify Player instance.
                 spotifyPlayer = Spotify.getPlayer(spotifyPlayerConfig, this, new Player.InitializationObserver() {
                     @Override
                     public void onInitialized(Player player) {
-                        spotifyPlayer.addConnectionStateCallback(ViewControllerActivity.this);
-                        spotifyPlayer.addPlayerNotificationCallback(ViewControllerActivity.this);
-
-                        SpotifyController.getInstance().storeSpotifyAccessToken(loginResponce.getAccessToken());
-                        SpotifyController.getInstance().getCurrentUsersTrackList();
+                        setUpSpotifyPlayer(loginResponce);
                     }
 
                     @Override
@@ -180,6 +187,33 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
         }
     }
 
+    /**
+     * General setup for the current SpotifyPlayer instance.
+     *
+     * @param loginResponce AuthenticationResponse collected from the Spotify API's LoginActivity.
+     */
+    private void setUpSpotifyPlayer(AuthenticationResponse loginResponce) {
+        bindSpotifyPlayerActivityCallbacks();
+        requestCurrentUsersTrackList(loginResponce);
+    }
+
+    /**
+     * Binds the SpotifyPlayer track callbacks to our current activity.
+     */
+    private void bindSpotifyPlayerActivityCallbacks() {
+        spotifyPlayer.addConnectionStateCallback(ViewControllerActivity.this);
+    }
+
+    /**
+     * Requests the current tracklist from the CurrentUsersTracksService.
+     *
+     * @param loginResponce AuthenticationResponse collected from the Spotify API's LoginActivity.
+     */
+    private void requestCurrentUsersTrackList(AuthenticationResponse loginResponce) {
+        SpotifyController.getInstance().storeSpotifyAccessToken(loginResponce.getAccessToken());
+        SpotifyController.getInstance().getCurrentUsersTrackList();
+    }
+
     @Override
     protected void onDestroy() {
         Spotify.destroyPlayer(spotifyPlayer);
@@ -188,37 +222,26 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
 
     @Override
     public void onLoggedIn() {
-
+        Snackbar.make(rootLayout, getString(R.string.user_notification_logged_in), Snackbar.LENGTH_SHORT);
     }
 
     @Override
     public void onLoggedOut() {
-
+        Snackbar.make(rootLayout, getString(R.string.user_notification_logged_out), Snackbar.LENGTH_SHORT);
     }
 
     @Override
     public void onLoginFailed(Throwable throwable) {
-
+        Snackbar.make(rootLayout, getString(R.string.user_notification_error_login), Snackbar.LENGTH_SHORT);
     }
 
     @Override
     public void onTemporaryError() {
-
+        Snackbar.make(rootLayout, getString(R.string.user_notification_unknown_error), Snackbar.LENGTH_SHORT);
     }
 
     @Override
     public void onConnectionMessage(String s) {
-
-    }
-
-    @Override
-    public void onPlaybackEvent(EventType eventType, PlayerState playerState) {
-        //TODO listen in for track end callback and scroll ViewPager by one.
-    }
-
-    @Override
-    public void onPlaybackError(ErrorType errorType, String s) {
-
     }
 
     @Override
@@ -242,5 +265,11 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
         queuePlayerWithUserSongs();
         setupViewPager();
         updateTrackInformationTextView(0);
+    }
+
+    @Subscribe
+    public void onMediaChanged(MediaChangedEvent mediaChangedEvent) {
+        disableListener = true;
+        coverFlowViewPager.setCurrentItem(coverFlowViewPager.getCurrentItem() + 1);
     }
 }

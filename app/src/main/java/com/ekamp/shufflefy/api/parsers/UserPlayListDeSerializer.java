@@ -25,16 +25,25 @@ public class UserPlayListDeSerializer implements JsonDeserializer<List<PlayList>
 
     @Override
     public List<PlayList> deserialize(JsonElement jsonRoot, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-
-        List usersPlaylists = null;
         JsonObject rootPlayListObject = jsonRoot.getAsJsonObject();
+        return createListOfPlayLists(rootPlayListObject);
+    }
+
+    /**
+     * Creates a list of POJO PlayList objects from a raw list of Json PlayList Objects.
+     *
+     * @param rootPlayListObject root JsonObject containing Json PlayList Objects.
+     * @return list of POJO PlayList objects.
+     */
+    private List<PlayList> createListOfPlayLists(JsonObject rootPlayListObject) {
         JsonArray trackArray;
+        List usersPlaylists = null;
         if (rootPlayListObject.has(TAG_TRACK_ARRAY)) {
             trackArray = rootPlayListObject.get(TAG_TRACK_ARRAY).getAsJsonArray();
             usersPlaylists = new ArrayList(trackArray.size());
             if (trackArray != null) {
                 for (JsonElement element : trackArray) {
-                    usersPlaylists.add(parseUserPlayList(element));
+                    usersPlaylists.add(parseUserPlayList(element.getAsJsonObject()));
                 }
             }
         }
@@ -44,16 +53,26 @@ public class UserPlayListDeSerializer implements JsonDeserializer<List<PlayList>
     /**
      * Parses Json playlist data into a PlayList POJO.
      *
-     * @param jsonElement root JsonElement for a user's followed PlayList.
+     * @param jsonObject root JsonObject for a user's followed PlayList.
      * @return POJO PlayList.
      */
-    private PlayList parseUserPlayList(JsonElement jsonElement) {
+    private PlayList parseUserPlayList(JsonObject jsonObject) {
         PlayList playList = null;
-        if (jsonElement != null) {
+        if (jsonObject != null) {
             playList = new PlayList();
-            playList.setTrackListID(jsonElement.getAsJsonObject().get(TAG_PLAYLIST_ID).getAsString());
-            playList.setName(jsonElement.getAsJsonObject().get(TAG_PLAYLIST_NAME).getAsString());
-            playList.setOwnerUserId(extractPlayListOwnerName(jsonElement.getAsJsonObject().get(TAG_PLAYLIST_ACCESS_INFORMATION).getAsString()));
+
+            if (jsonObject.has(TAG_PLAYLIST_ID)) {
+                playList.setTrackListID(jsonObject.get(TAG_PLAYLIST_ID).getAsString());
+            }
+
+            if (jsonObject.has(TAG_PLAYLIST_NAME)) {
+                playList.setName(jsonObject.get(TAG_PLAYLIST_NAME).getAsString());
+            }
+
+            if (jsonObject.has(TAG_PLAYLIST_ACCESS_INFORMATION)) {
+                playList.setOwnerUserId(extractPlayListOwnerName(jsonObject.get(TAG_PLAYLIST_ACCESS_INFORMATION).getAsString()));
+            }
+
         }
         return playList;
     }

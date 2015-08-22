@@ -14,4 +14,11 @@
     <!-- ImageView Content Description -->
     <string name="album_cover_art_content_description">Album cover image.</string>
 
+    <!-- Error handling and user notification messages -->
+    <string name="user_notification_logged_in">Login Successful!</string>
+    <string name="user_notification_logged_out">Logout Successful!</string>
+    <string name="user_notification_error_login">Login Failed!</string>
+    <string name="user_notification_unknown_error">An error has occurred.</string>
+    <string name="user_notification_error_playback">We cannot plaay your track at this time.</string>
+
 </resources>

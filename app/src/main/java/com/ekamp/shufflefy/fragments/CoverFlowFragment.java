@@ -15,6 +15,9 @@ import com.ekamp.shufflefy.activities.ActivityControllerCallback;
 import com.ekamp.shufflefy.api.model.Track;
 import com.squareup.picasso.Picasso;
 
+import butterknife.Bind;
+import butterknife.ButterKnife;
+
 /**
  * Fragment used to display cover art for the currently playing song.
  *
@@ -23,9 +26,11 @@ import com.squareup.picasso.Picasso;
  */
 public class CoverFlowFragment extends Fragment {
 
+    @Bind(R.id.cover_flow_image_view)
+    ImageView coverFlowImageView;
+
     public static String TAG = "CoverFlowFragment";
     private Track currentTrack;
-    private ImageView coverFlowImageView;
     private ActivityControllerCallback activityControllerCallback;
 
     @Override
@@ -38,6 +43,13 @@ public class CoverFlowFragment extends Fragment {
         }
     }
 
+    /**
+     * Creates a new instance of the CoverFlowFragment.
+     *
+     * @param currentTrack the track corresponding to the new CoverFlowFragment instance to be
+     *                     created.
+     * @return new CoverFlowFragment instance.
+     */
     public static CoverFlowFragment newInstance(Track currentTrack) {
         CoverFlowFragment coverFlowFragment = new CoverFlowFragment();
         coverFlowFragment.setCurrentTrack(currentTrack);
@@ -55,7 +67,9 @@ public class CoverFlowFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_cover_flow, container, false);
+        View inflatedView = inflater.inflate(R.layout.fragment_cover_flow, container, false);
+        ButterKnife.bind(this, inflatedView);
+        return inflatedView;
     }
 
     /**

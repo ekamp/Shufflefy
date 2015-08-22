@@ -3,8 +3,10 @@
     package="com.ekamp.shufflefy">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.BLUETOOTH" />
 
     <application
+        android:name=".ShufflefyApplication"
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
@@ -13,6 +15,14 @@
             android:name=".activities.ViewControllerActivity"
             android:label="@string/app_name"
             android:screenOrientation="portrait">
+            <receiver
+                android:name=".broadcastreceivers.SpotifyMediaChangedReceiver"
+                android:enabled="true"
+                android:exported="true">
+                <intent-filter>
+                    <action android:name="com.spotify.music.metadatachanged" />
+                </intent-filter>
+            </receiver>
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

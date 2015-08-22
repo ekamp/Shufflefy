@@ -8,7 +8,8 @@ import com.ekamp.shufflefy.controller.SpotifyController;
 import com.ekamp.shufflefy.fragments.CoverFlowFragment;
 
 /**
- * Adapter to be used for the cover art flow ViewPager.
+ * Adapter to be used for the cover art flow ViewPager. Each page is a new instance of the CoverFlowFragment
+ * class.
  *
  * @author Erik Kamp
  * @since 7/25/15.

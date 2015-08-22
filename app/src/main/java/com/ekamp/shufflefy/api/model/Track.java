@@ -74,6 +74,10 @@ public class Track {
         Track.spotifyTrackPrefix = spotifyTrackPrefix;
     }
 
+    public static String getTrackPlayableName(String trackID) {
+        return new StringBuilder(spotifyTrackPrefix).append(trackID).toString();
+    }
+
     @Override
     public String toString() {
         return "Track{" +
