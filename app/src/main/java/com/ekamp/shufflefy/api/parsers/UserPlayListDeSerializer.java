@@ -5,6 +5,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 
 import java.lang.reflect.Type;
@@ -19,17 +20,22 @@ import java.util.List;
  */
 public class UserPlayListDeSerializer implements JsonDeserializer<List<PlayList>> {
 
-    private static final String TAG_PLAYLIST_ID = "id", TAG_PLAYLIST_NAME = "name", TAG_PLAYLIST_ACCESS_INFORMATION = "uri";
+    private static final String TAG_PLAYLIST_ID = "id", TAG_PLAYLIST_NAME = "name",
+            TAG_PLAYLIST_ACCESS_INFORMATION = "uri", TAG_TRACK_ARRAY = "items";
 
     @Override
     public List<PlayList> deserialize(JsonElement jsonRoot, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
 
-        List usersPlaylists;
-        JsonArray itemArray = jsonRoot.getAsJsonObject().get("items").getAsJsonArray();
-        usersPlaylists = new ArrayList(itemArray.size());
-        if (itemArray != null) {
-            for (JsonElement element : itemArray) {
-                usersPlaylists.add(parseUserPlayList(element));
+        List usersPlaylists = null;
+        JsonObject rootPlayListObject = jsonRoot.getAsJsonObject();
+        JsonArray trackArray;
+        if (rootPlayListObject.has(TAG_TRACK_ARRAY)) {
+            trackArray = rootPlayListObject.get(TAG_TRACK_ARRAY).getAsJsonArray();
+            usersPlaylists = new ArrayList(trackArray.size());
+            if (trackArray != null) {
+                for (JsonElement element : trackArray) {
+                    usersPlaylists.add(parseUserPlayList(element));
+                }
             }
         }
         return usersPlaylists;

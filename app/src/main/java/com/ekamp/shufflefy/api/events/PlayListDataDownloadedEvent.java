@@ -12,7 +12,7 @@ import java.util.List;
  */
 public class PlayListDataDownloadedEvent {
 
-    private List<PlayList> userPlayListData;
+    private final List<PlayList> userPlayListData;
 
     public PlayListDataDownloadedEvent(List<PlayList> userPlayListData) {
         this.userPlayListData = userPlayListData;

@@ -17,28 +17,28 @@ public interface SpotifyControllerInterface {
      *
      * @return resource url to the song/tracks cover art.
      */
-    public String getCoverArtResource();
+    String getCoverArtResource();
 
     /**
      * Retrieves a list of trackIDs, so that they may be queued and played using the Spotify player.
      *
-     * @param playListID  playlist identifier
-     * @param userID      playlists creator identifier
+     * @param playListID playlist identifier
+     * @param userID     playlists creator identifier
      */
-    public void getPlayListTracks(String userID , String playListID);
+    void getPlayListTracks(String userID, String playListID);
 
     /**
      * Retrieves all playlists belonging to the current user.
      *
-     * @param userID      current user identifier
+     * @param userID current user identifier
      */
-    public void getUserPlayLists(String userID);
+    void getUserPlayLists(String userID);
 
 
     /**
      * Retrives all songs this user has saved.
      */
-    public void getCurrentUsersTrackList();
+    void getCurrentUsersTrackList();
 
 
     /**
@@ -46,37 +46,37 @@ public interface SpotifyControllerInterface {
      *
      * @param userPlayListData list of the current user's saved playlists
      */
-    public void storePlayListData(List<PlayList> userPlayListData);
+    void storePlayListData(List<PlayList> userPlayListData);
 
 
     /**
      * @return list of playlists pertaining to the current user.
      */
-    public List<PlayList> getUserPlayListData();
+    List<PlayList> getUserPlayListData();
 
     /**
      * Stores the access token downloaded once the user approves this application for use on their
      * account.
      */
-    public void storeSpotifyAccessToken(String accessToken);
+    void storeSpotifyAccessToken(String accessToken);
 
 
     /**
      * @return access token downloaded once the user approved the application for use
      */
-    public String getSpotifyAccessToken();
+    String getSpotifyAccessToken();
 
     /**
      * Saves the list of tracks currently in the user's song library.
      *
      * @param userTrackList downloaded user track list
      */
-    public void storeUserSavedTracks(List<Track> userTrackList);
+    void storeUserSavedTracks(List<Track> userTrackList);
 
     /**
      * Retrives the list of tracks currently in the user's song library.
      *
      * @return the list of tracks currently in the user's song library.
      */
-    public List<Track> getUsersSavedTracks();
+    List<Track> getUsersSavedTracks();
 }

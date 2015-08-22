@@ -29,7 +29,8 @@ import retrofit.client.Response;
 import retrofit.converter.GsonConverter;
 
 /**
- * Controller backend support for this application.
+ * Controller backend support for this application. Acts as the communication between out model and
+ * our view.
  *
  * @author Erik Kamp
  * @since 7/25/15.
@@ -45,7 +46,11 @@ public class SpotifyController implements SpotifyControllerInterface {
             REQUEST_HEADER_AUTHORIZATION_KEY = "Authorization:",
             REQUEST_HEADER_AUTHORIZATION_PARTIAL_VALUE = "Bearer ";
 
-
+    /**
+     * Retrieves the current Singleton instance of the controller.
+     *
+     * @return current singleton controller instance.
+     */
     public static SpotifyController getInstance() {
         if (spotifyController == null) {
             spotifyController = new SpotifyController();
@@ -53,22 +58,35 @@ public class SpotifyController implements SpotifyControllerInterface {
         return spotifyController;
     }
 
-    public static RestAdapter getRestAdapter(String accessToken, Gson gsonConverter) {
+    /**
+     * Creates a REST adapter based on the current user's access token and requests data parser or
+     * POJO converter.
+     *
+     * @param gsonConverter parser used to transform raw Json data to a POJO.
+     * @return new RestAdaper instance to be used to collect information on a user, track or Playlist.
+     */
+    private static RestAdapter createRestAdapter(Gson gsonConverter) {
         restAdapter = new RestAdapter.Builder()
                 .setEndpoint(API_END_POINT)
-                .setRequestInterceptor(getRequestInterceptor(accessToken))
+                .setRequestInterceptor(getRequestInterceptor())
                 .setConverter(new GsonConverter(gsonConverter))
                 .build();
         return restAdapter;
     }
 
-    private static RequestInterceptor getRequestInterceptor(final String accessToken) {
+    /**
+     * Retrieves the current Singleton instance of the RequestInterceptor used for Spotify data
+     * requests, if an instance does not exist one is created.
+     *
+     * @return current Singleton instance of the RequestInterceptor.
+     * */
+    private static RequestInterceptor getRequestInterceptor() {
         if (requestInterceptor == null) {
             requestInterceptor = new RequestInterceptor() {
                 @Override
                 public void intercept(RequestFacade request) {
                     request.addHeader(REQUEST_HEADER_ACCEPT_KEY, REQUEST_HEADER_ACCEPT_VALUE);
-                    request.addHeader(REQUEST_HEADER_AUTHORIZATION_KEY, REQUEST_HEADER_AUTHORIZATION_PARTIAL_VALUE + accessToken);
+                    request.addHeader(REQUEST_HEADER_AUTHORIZATION_KEY, REQUEST_HEADER_AUTHORIZATION_PARTIAL_VALUE + SpotifyData.getInstance().getApiAccessToken());
                 }
             };
         }
@@ -87,7 +105,7 @@ public class SpotifyController implements SpotifyControllerInterface {
                 .registerTypeAdapter(List.class, new TrackListDeSerializer())
                 .create();
 
-        TrackListService trackListService = getRestAdapter(SpotifyController.getInstance().getSpotifyAccessToken(), gson).create(TrackListService.class);
+        TrackListService trackListService = createRestAdapter(gson).create(TrackListService.class);
         trackListService.getTrackList(userID, playListID, new Callback<List<Track>>() {
             @Override
             public void success(List<Track> playlistTracks, Response response) {
@@ -108,7 +126,7 @@ public class SpotifyController implements SpotifyControllerInterface {
                 .registerTypeAdapter(List.class, new UserPlayListDeSerializer())
                 .create();
 
-        UserPlayListService userPlayListService = getRestAdapter(SpotifyController.getInstance().getSpotifyAccessToken(), gson).
+        UserPlayListService userPlayListService = createRestAdapter(gson).
                 create(UserPlayListService.class);
         userPlayListService.getUserPlayLists(userID, new Callback<List<PlayList>>() {
             @Override
@@ -131,7 +149,7 @@ public class SpotifyController implements SpotifyControllerInterface {
                 .registerTypeAdapter(List.class, new TrackListDeSerializer())
                 .create();
 
-        CurrentUsersTracksService currentUsersTracksService = getRestAdapter(SpotifyController.getInstance().getSpotifyAccessToken(), gson).create(CurrentUsersTracksService.class);
+        CurrentUsersTracksService currentUsersTracksService = createRestAdapter(gson).create(CurrentUsersTracksService.class);
         currentUsersTracksService.getCurrentUsersSavedTracks(new Callback<List<Track>>() {
             @Override
             public void success(List<Track> tracks, Response response) {

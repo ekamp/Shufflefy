@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!-- Application Name -->
     <string name="app_name">Shufflefy</string>
+
+    <!-- API & Adapter reference -->
     <string name="spotify_client_id">7f5a0d9cb256413da12352f2d05816c2</string>
     <string name="spotify_redirect_url">erikkamp://shufflefyredirectcallback</string>
     <string name="spotify_user_access">user-read-private</string>
     <string name="spotify_user_library_read_scope">user-library-read</string>
     <string name="spotify_api_type">streaming</string>
-    <string name="spotify_accept_request_header_key">Accept:</string>
-    <string name="spotify_accept_request_header_value">application/json</string>
-    <string name="spotify_authorization_request_header_key">Authorization: Bearer </string>
-    <string name="spotify_track_prefix">spotify:track:</string>
+
+    <!-- ImageView Content Description -->
+    <string name="album_cover_art_content_description">Album cover image.</string>
 
 </resources>

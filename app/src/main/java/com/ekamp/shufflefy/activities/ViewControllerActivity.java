@@ -12,8 +12,6 @@ import com.ekamp.shufflefy.R;
 import com.ekamp.shufflefy.ShufflefyApplication;
 import com.ekamp.shufflefy.adapters.CoverFlowViewPagerAdapter;
 import com.ekamp.shufflefy.api.events.CurrentUserTrackListDownloadedEvent;
-import com.ekamp.shufflefy.api.events.PlayListDataDownloadedEvent;
-import com.ekamp.shufflefy.api.events.TrackListDownloadedEvent;
 import com.ekamp.shufflefy.api.model.Track;
 import com.ekamp.shufflefy.controller.SpotifyController;
 import com.spotify.sdk.android.authentication.AuthenticationClient;
@@ -92,7 +90,6 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
                                 //Once the user has scrolled to the next song, play the next song
                                 if (previousCoverPosition > position) {
                                     spotifyPlayer.skipToPrevious();
-                                    spotifyPlayer.resume();
                                 } else {
                                     spotifyPlayer.skipToNext();
                                 }
@@ -125,7 +122,7 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
     /**
      * Starts the Spotify authentication process utilizing the v1.0 Spotify authentication library
      */
-    public void authenticateSpotifyUser() {
+    private void authenticateSpotifyUser() {
         AuthenticationRequest.Builder authenticationBuilder = new AuthenticationRequest.Builder(getString(R.string.spotify_client_id),
                 AuthenticationResponse.Type.TOKEN,
                 getString(R.string.spotify_redirect_url));
@@ -236,14 +233,6 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
                 }
             }
         });
-    }
-
-    @Subscribe
-    public void onUserPlaylistDataDownloaded(PlayListDataDownloadedEvent playListDataDownloadedEvent) {
-    }
-
-    @Subscribe
-    public void onPlaylistTrackListDownloaded(TrackListDownloadedEvent trackListDownloadedEvent) {
     }
 
     @Subscribe

@@ -63,7 +63,7 @@ public class CoverFlowFragment extends Fragment {
      *
      * @param currentTrack track to be displayed in this fragment
      */
-    public void setCurrentTrack(Track currentTrack) {
+    private void setCurrentTrack(Track currentTrack) {
         this.currentTrack = currentTrack;
     }
 

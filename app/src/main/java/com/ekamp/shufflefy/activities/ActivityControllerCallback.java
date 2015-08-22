@@ -11,5 +11,5 @@ public interface ActivityControllerCallback {
     /**
      * Depending on the state of the player, will play or pause a currently shown song.
      */
-    public void playPauseSong();
+    void playPauseSong();
 }

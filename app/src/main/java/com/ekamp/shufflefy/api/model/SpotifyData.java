@@ -12,7 +12,7 @@ import java.util.List;
  */
 public class SpotifyData {
 
-    public static SpotifyData spotifyDataInstance;
+    private static SpotifyData spotifyDataInstance;
 
     private List<PlayList> userPlayLists;
     private List<Track> userSavedTracks;
@@ -26,6 +26,8 @@ public class SpotifyData {
     }
 
     public String getApiAccessToken() {
+        if (apiAccessToken == null)
+            return "";
         return apiAccessToken;
     }
 
