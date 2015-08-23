@@ -8,10 +8,15 @@ The main structure of this application revolves around the Model View Controller
 
 ![Alt text](https://github.com/ekamp/Shufflefy/blob/master/UMLDesign.png "Application Architecture")
 
+## Future Features
+- Drawer to display user account information.
+- Drawer element to allow a user to change the queue to a Playlist.
+
 ##Libaries Utilized 
 - Square's Retrofit for content services.
 - Square's Otto for an application-wide event bus.
 - Square's Picasso for smooth image loading.
+- Square's ButterKnife for view injection, allows for cleaner view based code.
 - Google's Support Percent Library for View Scaling.
 - Spotify's Authentication library 1.0 beta 10 (Used for authenticating a user)
 - Spotify's Player library 1.0 beta 10 (Used to manage a user's track queue and track play state)
