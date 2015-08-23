@@ -156,6 +156,7 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
             for (Track track : SpotifyController.getInstance().getUsersSavedTracks()) {
                 spotifyPlayer.queue(track.getTrackPlayableName());
             }
+
         }
     }
 
@@ -221,7 +222,6 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
 
     @Override
     public void onLoggedIn() {
-//        Toast.makeText(this, getString(R.string.user_notification_logged_in), Toast.LENGTH_SHORT).show();
         Snackbar.make(parentViewGroup, getString(R.string.user_notification_logged_in), Snackbar.LENGTH_SHORT);
     }
 
@@ -262,6 +262,10 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
     public void onPlaybackEvent(EventType eventType, PlayerState playerState) {
         if (SpotifyController.getPlayBackEventHandler().isTrackChangeEvent(eventType)) {
             viewPagerListenerEnabled = false;
+
+            if (coverFlowViewPager.getChildCount() == coverFlowViewPager.getCurrentItem())
+                return;
+
             updateTrackInformationTextView(coverFlowViewPager.getCurrentItem() + 1);
             coverFlowViewPager.setCurrentItem(coverFlowViewPager.getCurrentItem() + 1, true);
         }
