@@ -227,19 +227,16 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
 
     @Override
     public void onLoggedOut() {
-//        Toast.makeText(this, getString(R.string.user_notification_logged_out), Toast.LENGTH_SHORT).show();
         Snackbar.make(parentViewGroup, getString(R.string.user_notification_logged_out), Snackbar.LENGTH_SHORT);
     }
 
     @Override
     public void onLoginFailed(Throwable throwable) {
-//        Toast.makeText(this, getString(R.string.user_notification_error_login), Toast.LENGTH_SHORT).show();
         Snackbar.make(parentViewGroup, getString(R.string.user_notification_error_login), Snackbar.LENGTH_SHORT);
     }
 
     @Override
     public void onTemporaryError() {
-//        Toast.makeText(this, getString(R.string.user_notification_unknown_error), Toast.LENGTH_SHORT).show();
         Snackbar.make(parentViewGroup, getString(R.string.user_notification_unknown_error), Snackbar.LENGTH_SHORT);
     }
 
@@ -272,7 +269,6 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
 
     @Override
     public void onPlaybackError(ErrorType errorType, String errorString) {
-//        Toast.makeText(this, errorString, Toast.LENGTH_SHORT).show();
         Snackbar.make(parentViewGroup, errorString, Snackbar.LENGTH_SHORT);
     }
 
