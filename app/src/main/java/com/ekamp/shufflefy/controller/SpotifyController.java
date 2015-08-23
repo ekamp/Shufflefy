@@ -3,9 +3,9 @@ package com.ekamp.shufflefy.controller;
 
 import android.util.Log;
 
-import com.ekamp.shufflefy.ShufflefyApplication;
 import com.ekamp.shufflefy.api.events.CurrentUserTrackListDownloadedEvent;
 import com.ekamp.shufflefy.api.events.PlayListDataDownloadedEvent;
+import com.ekamp.shufflefy.api.events.PlaybackEventHandler;
 import com.ekamp.shufflefy.api.events.TrackListDownloadedEvent;
 import com.ekamp.shufflefy.api.model.PlayList;
 import com.ekamp.shufflefy.api.model.SpotifyData;
@@ -18,6 +18,7 @@ import com.ekamp.shufflefy.api.requests.UserPlayListService;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.squareup.otto.Bus;
 
 import java.util.List;
 
@@ -40,6 +41,8 @@ public class SpotifyController implements SpotifyControllerInterface {
     private static SpotifyController spotifyController;
     private static RestAdapter restAdapter;
     private static RequestInterceptor requestInterceptor;
+    private static PlaybackEventHandler playbackEventHandler;
+    private static Bus applicationEventBus;
     private static final String API_END_POINT = "https://api.spotify.com/v1",
             REQUEST_HEADER_ACCEPT_KEY = "Accept:",
             REQUEST_HEADER_ACCEPT_VALUE = "application/json",
@@ -56,6 +59,18 @@ public class SpotifyController implements SpotifyControllerInterface {
             spotifyController = new SpotifyController();
         }
         return spotifyController;
+    }
+
+    /**
+     * Retrieves the current Otto event bus, used to deliver events to the UI.
+     *
+     * @return current Otto event bus instance.
+     */
+    public static Bus getApplicationEventBus() {
+        if (applicationEventBus == null) {
+            applicationEventBus = new Bus();
+        }
+        return applicationEventBus;
     }
 
     /**
@@ -79,7 +94,7 @@ public class SpotifyController implements SpotifyControllerInterface {
      * requests, if an instance does not exist one is created.
      *
      * @return current Singleton instance of the RequestInterceptor.
-     * */
+     */
     private static RequestInterceptor getRequestInterceptor() {
         if (requestInterceptor == null) {
             requestInterceptor = new RequestInterceptor() {
@@ -91,6 +106,13 @@ public class SpotifyController implements SpotifyControllerInterface {
             };
         }
         return requestInterceptor;
+    }
+
+    public static PlaybackEventHandler getPlayBackEventHandler() {
+        if (playbackEventHandler == null) {
+            playbackEventHandler = new PlaybackEventHandler();
+        }
+        return playbackEventHandler;
     }
 
     @Override
@@ -109,7 +131,7 @@ public class SpotifyController implements SpotifyControllerInterface {
         trackListService.getTrackList(userID, playListID, new Callback<List<Track>>() {
             @Override
             public void success(List<Track> playlistTracks, Response response) {
-                ShufflefyApplication.get().getApplicationEventBus().post(new TrackListDownloadedEvent(playlistTracks));
+                getApplicationEventBus().post(new TrackListDownloadedEvent(playlistTracks));
             }
 
             @Override
@@ -132,7 +154,7 @@ public class SpotifyController implements SpotifyControllerInterface {
             @Override
             public void success(List<PlayList> userPlayLists, Response response) {
                 storePlayListData(userPlayLists);
-                ShufflefyApplication.get().getApplicationEventBus().post(new PlayListDataDownloadedEvent(userPlayLists));
+                getApplicationEventBus().post(new PlayListDataDownloadedEvent(userPlayLists));
             }
 
             @Override
@@ -153,7 +175,7 @@ public class SpotifyController implements SpotifyControllerInterface {
         currentUsersTracksService.getCurrentUsersSavedTracks(new Callback<List<Track>>() {
             @Override
             public void success(List<Track> tracks, Response response) {
-                ShufflefyApplication.get().getApplicationEventBus().post(new CurrentUserTrackListDownloadedEvent(tracks));
+                getApplicationEventBus().post(new CurrentUserTrackListDownloadedEvent(tracks));
             }
 
             @Override

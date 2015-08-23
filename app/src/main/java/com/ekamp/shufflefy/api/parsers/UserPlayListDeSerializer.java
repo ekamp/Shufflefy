@@ -41,10 +41,8 @@ public class UserPlayListDeSerializer implements JsonDeserializer<List<PlayList>
         if (rootPlayListObject.has(TAG_TRACK_ARRAY)) {
             trackArray = rootPlayListObject.get(TAG_TRACK_ARRAY).getAsJsonArray();
             usersPlaylists = new ArrayList(trackArray.size());
-            if (trackArray != null) {
-                for (JsonElement element : trackArray) {
-                    usersPlaylists.add(parseUserPlayList(element.getAsJsonObject()));
-                }
+            for (JsonElement element : trackArray) {
+                usersPlaylists.add(parseUserPlayList(element.getAsJsonObject()));
             }
         }
         return usersPlaylists;

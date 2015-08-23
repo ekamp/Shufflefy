@@ -2,19 +2,17 @@ package com.ekamp.shufflefy.activities;
 
 import android.content.Intent;
 import android.support.design.widget.Snackbar;
-import android.support.percent.PercentRelativeLayout;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.util.TypedValue;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.ekamp.shufflefy.R;
-import com.ekamp.shufflefy.ShufflefyApplication;
 import com.ekamp.shufflefy.adapters.CoverFlowViewPagerAdapter;
 import com.ekamp.shufflefy.api.events.CurrentUserTrackListDownloadedEvent;
-import com.ekamp.shufflefy.api.events.MediaChangedEvent;
 import com.ekamp.shufflefy.api.model.Track;
 import com.ekamp.shufflefy.controller.SpotifyController;
 import com.spotify.sdk.android.authentication.AuthenticationClient;
@@ -23,6 +21,7 @@ import com.spotify.sdk.android.authentication.AuthenticationResponse;
 import com.spotify.sdk.android.player.Config;
 import com.spotify.sdk.android.player.ConnectionStateCallback;
 import com.spotify.sdk.android.player.Player;
+import com.spotify.sdk.android.player.PlayerNotificationCallback;
 import com.spotify.sdk.android.player.PlayerState;
 import com.spotify.sdk.android.player.PlayerStateCallback;
 import com.spotify.sdk.android.player.Spotify;
@@ -39,13 +38,13 @@ import butterknife.OnPageChange;
  * @author Erik Kamp
  * @since 7/25/2015
  */
-public class ViewControllerActivity extends FragmentActivity implements ActivityControllerCallback, ConnectionStateCallback {
+public class ViewControllerActivity extends FragmentActivity implements ActivityControllerCallback, ConnectionStateCallback, PlayerNotificationCallback {
+
+    @Bind(R.id.parent_viewgroup)
+    RelativeLayout parentViewGroup;
 
     @Bind(R.id.cover_flow_view_pager)
     ViewPager coverFlowViewPager;
-
-    @Bind(R.id.parent_viewgroup)
-    PercentRelativeLayout rootLayout;
 
     @Bind(R.id.current_track_name)
     TextView trackNameTextView;
@@ -59,27 +58,26 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
     private Player spotifyPlayer;
     private final static int REQUEST_ID = 1337;
     private int previousCoverPosition = 0;
-    private boolean disableListener = false;
+    private boolean viewPagerListenerEnabled = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
-
         authenticateSpotifyUser();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        ShufflefyApplication.get().getApplicationEventBus().register(this);
+        SpotifyController.getInstance().getApplicationEventBus().register(this);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        ShufflefyApplication.get().getApplicationEventBus().unregister(this);
+        SpotifyController.getInstance().getApplicationEventBus().unregister(this);
     }
 
     /**
@@ -100,8 +98,8 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
      */
     @OnPageChange(R.id.cover_flow_view_pager)
     public void onCoverArtChangedListener(int newTrackPosition) {
-        if (disableListener) {
-            disableListener = false;
+        if (!viewPagerListenerEnabled) {
+            viewPagerListenerEnabled = true;
             return;
         }
         if (newTrackPosition > previousCoverPosition) {
@@ -202,6 +200,7 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
      */
     private void bindSpotifyPlayerActivityCallbacks() {
         spotifyPlayer.addConnectionStateCallback(ViewControllerActivity.this);
+        spotifyPlayer.addPlayerNotificationCallback(ViewControllerActivity.this);
     }
 
     /**
@@ -222,22 +221,26 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
 
     @Override
     public void onLoggedIn() {
-        Snackbar.make(rootLayout, getString(R.string.user_notification_logged_in), Snackbar.LENGTH_SHORT);
+//        Toast.makeText(this, getString(R.string.user_notification_logged_in), Toast.LENGTH_SHORT).show();
+        Snackbar.make(parentViewGroup, getString(R.string.user_notification_logged_in), Snackbar.LENGTH_SHORT);
     }
 
     @Override
     public void onLoggedOut() {
-        Snackbar.make(rootLayout, getString(R.string.user_notification_logged_out), Snackbar.LENGTH_SHORT);
+//        Toast.makeText(this, getString(R.string.user_notification_logged_out), Toast.LENGTH_SHORT).show();
+        Snackbar.make(parentViewGroup, getString(R.string.user_notification_logged_out), Snackbar.LENGTH_SHORT);
     }
 
     @Override
     public void onLoginFailed(Throwable throwable) {
-        Snackbar.make(rootLayout, getString(R.string.user_notification_error_login), Snackbar.LENGTH_SHORT);
+//        Toast.makeText(this, getString(R.string.user_notification_error_login), Toast.LENGTH_SHORT).show();
+        Snackbar.make(parentViewGroup, getString(R.string.user_notification_error_login), Snackbar.LENGTH_SHORT);
     }
 
     @Override
     public void onTemporaryError() {
-        Snackbar.make(rootLayout, getString(R.string.user_notification_unknown_error), Snackbar.LENGTH_SHORT);
+//        Toast.makeText(this, getString(R.string.user_notification_unknown_error), Toast.LENGTH_SHORT).show();
+        Snackbar.make(parentViewGroup, getString(R.string.user_notification_unknown_error), Snackbar.LENGTH_SHORT);
     }
 
     @Override
@@ -258,6 +261,21 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
         });
     }
 
+    @Override
+    public void onPlaybackEvent(EventType eventType, PlayerState playerState) {
+        if (SpotifyController.getPlayBackEventHandler().isTrackChangeEvent(eventType)) {
+            viewPagerListenerEnabled = false;
+            updateTrackInformationTextView(coverFlowViewPager.getCurrentItem() + 1);
+            coverFlowViewPager.setCurrentItem(coverFlowViewPager.getCurrentItem() + 1, true);
+        }
+    }
+
+    @Override
+    public void onPlaybackError(ErrorType errorType, String errorString) {
+//        Toast.makeText(this, errorString, Toast.LENGTH_SHORT).show();
+        Snackbar.make(parentViewGroup, errorString, Snackbar.LENGTH_SHORT);
+    }
+
     @Subscribe
     public void onCurrentTrackListDownloaded(CurrentUserTrackListDownloadedEvent currentUserTrackListDownloadedEvent) {
         //Once we have downloaded we just want to store and play the users first song from their library.
@@ -265,11 +283,5 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
         queuePlayerWithUserSongs();
         setupViewPager();
         updateTrackInformationTextView(0);
-    }
-
-    @Subscribe
-    public void onMediaChanged(MediaChangedEvent mediaChangedEvent) {
-        disableListener = true;
-        coverFlowViewPager.setCurrentItem(coverFlowViewPager.getCurrentItem() + 1);
     }
 }
