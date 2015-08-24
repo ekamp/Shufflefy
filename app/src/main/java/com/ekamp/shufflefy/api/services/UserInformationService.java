@@ -1,4 +1,4 @@
-package com.ekamp.shufflefy.api.requests;
+package com.ekamp.shufflefy.api.services;
 
 /**
  * Service used to collect more information on a user.

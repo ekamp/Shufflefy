@@ -27,6 +27,8 @@ import com.spotify.sdk.android.player.PlayerStateCallback;
 import com.spotify.sdk.android.player.Spotify;
 import com.squareup.otto.Subscribe;
 
+import java.util.concurrent.TimeUnit;
+
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnPageChange;
@@ -145,7 +147,7 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
      * @return true if ready false otherwise.
      */
     private boolean isSpotifyPlayerReady() {
-        return spotifyPlayer != null && spotifyPlayer.isInitialized() && spotifyPlayer.isLoggedIn();
+        return spotifyPlayer != null && spotifyPlayer.isInitialized();
     }
 
     /**
@@ -156,7 +158,6 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
             for (Track track : SpotifyController.getInstance().getUsersSavedTracks()) {
                 spotifyPlayer.queue(track.getTrackPlayableName());
             }
-
         }
     }
 
@@ -169,7 +170,9 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
             //Check to make sure this is a login authentication response
             if (loginResponce.getType() == AuthenticationResponse.Type.TOKEN) {
                 //Grab the configuration for our player from the response
-                final Config spotifyPlayerConfig = new Config(this, loginResponce.getAccessToken(), getString(R.string.spotify_client_id));
+                Config spotifyPlayerConfig = new Config(this, loginResponce.getAccessToken(), getString(R.string.spotify_client_id));
+                spotifyPlayerConfig.useCache(true);
+
                 //Create a new Spotify Player instance.
                 spotifyPlayer = Spotify.getPlayer(spotifyPlayerConfig, this, new Player.InitializationObserver() {
                     @Override
@@ -216,7 +219,11 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
 
     @Override
     protected void onDestroy() {
-        Spotify.destroyPlayer(spotifyPlayer);
+        try {
+            Spotify.awaitDestroyPlayer(this, 10, TimeUnit.SECONDS);
+        } catch (InterruptedException ie) {
+            Log.e(getClass().getName(), "Could not destroy player");
+        }
         super.onDestroy();
     }
 
@@ -233,6 +240,8 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
     @Override
     public void onLoginFailed(Throwable throwable) {
         Snackbar.make(parentViewGroup, getString(R.string.user_notification_error_login), Snackbar.LENGTH_SHORT);
+        AuthenticationClient.logout(this);
+        authenticateSpotifyUser();
     }
 
     @Override
@@ -242,6 +251,7 @@ public class ViewControllerActivity extends FragmentActivity implements Activity
 
     @Override
     public void onConnectionMessage(String s) {
+        Log.e(getClass().getName(), "Connected " + s);
     }
 
     @Override

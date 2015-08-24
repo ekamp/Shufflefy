@@ -1,4 +1,4 @@
-package com.ekamp.shufflefy.api.requests;
+package com.ekamp.shufflefy.api.services;
 
 import com.ekamp.shufflefy.api.model.PlayList;
 
