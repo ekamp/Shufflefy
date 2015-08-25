@@ -23,4 +23,3 @@ The main structure of this application revolves around the Model View Controller
 
 ##Known Issues
 - SpotifyPlayer instance does not start playing a track when .skipToPrevious() is called on the queue.
-- In some instances the track queue will not start playing due to the active MediaController state.
